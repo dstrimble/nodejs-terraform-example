@@ -5,13 +5,10 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "./node_modules/.bin/mocha --reporter spec"
   },
-  "author": "Rohan",
-  "license": "ISC",
+  "author": "Daniel",
+  "license": "",
   "dependencies": {
-    "chai": "^4.0.2",
-    "express": "^4.15.3",
-    "mocha": "^3.4.2"
+    "express": "^4.15.3"
   }
 }

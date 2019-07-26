@@ -1,31 +1,187 @@
-provider "aws" {
-  region = "us-east-1"
+# Configure the Microsoft Azure Provider
+provider "azurerm" {
 }
 
-resource "aws_instance" "example" {
-  ami = "ami-a4c7edb2"
-  instance_type = "t2.micro"
-  key_name = "HelloWorld"
-  vpc_security_group_ids = ["sg-41189330"]
-  iam_instance_profile = "EC2Access"
+# Create a resource group if it doesn’t exist
+resource "azurerm_resource_group" "myterraformgroup" {
+    name     = "myResourceGroup"
+    location = "eastus"
 
-  user_data = <<-EOF
-              #!bin/bash
-              sudo yum update –y
-              sudo yum install git -y
-              mkdir /app
-              chmod 755 /app
-              cd /app
-              git clone https://github.com/alexvayn/hello-world-example.git
-              curl -sL https://rpm.nodesource.com/setup_6.x | sudo -E bash -
-              sudo yum install nodejs --enablerepo=nodesource -y
-              node --version > nodeVersion.txt
-              cd /app/hello-world
-              npm install
-              npm start
-              EOF
+    tags = {
+        environment = "Terraform Demo"
+    }
+}
 
-  tags {
-    Name = "Alex's Weak EC2"
-  }
+# Create virtual network
+resource "azurerm_virtual_network" "myterraformnetwork" {
+    name                = "myVnet"
+    address_space       = ["10.0.0.0/16"]
+    location            = "eastus"
+    resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+
+    tags = {
+        environment = "Terraform Demo"
+    }
+}
+
+# Create subnet
+resource "azurerm_subnet" "myterraformsubnet" {
+    name                 = "mySubnet"
+    resource_group_name  = "${azurerm_resource_group.myterraformgroup.name}"
+    virtual_network_name = "${azurerm_virtual_network.myterraformnetwork.name}"
+    address_prefix       = "10.0.1.0/24"
+}
+
+# Create public IPs
+resource "azurerm_public_ip" "myterraformpublicip" {
+    name                         = "myPublicIP"
+    location                     = "eastus"
+    resource_group_name          = "${azurerm_resource_group.myterraformgroup.name}"
+    allocation_method            = "Dynamic"
+
+    tags = {
+        environment = "Terraform Demo"
+    }
+}
+
+output "ip" {
+    value = "${azurerm_public_ip.myterraformpublicip.ip_address}"
+}
+
+# Create Network Security Group and rule
+resource "azurerm_network_security_group" "myterraformnsg" {
+    name                = "myNetworkSecurityGroup"
+    location            = "eastus"
+    resource_group_name = "${azurerm_resource_group.myterraformgroup.name}"
+    
+    security_rule {
+        name                       = "SSH"
+        priority                   = 1001
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "22"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+    }
+
+    security_rule {
+        name                       = "app"
+        priority                   = 1002
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "3000"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+    }
+
+    tags = {
+        environment = "Terraform Demo"
+    }
+}
+
+# Create network interface
+resource "azurerm_network_interface" "myterraformnic" {
+    name                      = "myNIC"
+    location                  = "eastus"
+    resource_group_name       = "${azurerm_resource_group.myterraformgroup.name}"
+    network_security_group_id = "${azurerm_network_security_group.myterraformnsg.id}"
+
+    ip_configuration {
+        name                          = "myNicConfiguration"
+        subnet_id                     = "${azurerm_subnet.myterraformsubnet.id}"
+        private_ip_address_allocation = "Dynamic"
+        public_ip_address_id          = "${azurerm_public_ip.myterraformpublicip.id}"
+    }
+
+    tags = {
+        environment = "Terraform Demo"
+    }
+}
+
+# Generate random text for a unique storage account name
+#resource "random_id" "randomId" {
+#    keepers = {
+#        # Generate a new ID only when a new resource group is defined
+#        resource_group = "${azurerm_resource_group.myterraformgroup.name}"
+#    }
+#    
+#    byte_length = 8
+#}
+
+# Create storage account for boot diagnostics
+#resource "azurerm_storage_account" "mystorageaccount" {
+#    name                        = "diag${random_id.randomId.hex}"
+#    resource_group_name         = "${azurerm_resource_group.myterraformgroup.name}"
+#    location                    = "eastus"
+#    account_tier                = "Standard"
+#    account_replication_type    = "LRS"
+#
+#    tags = {
+#        environment = "Terraform Demo"
+#    }
+#}
+
+# Create virtual machine
+resource "azurerm_virtual_machine" "myterraformvm" {
+    name                  = "myVM"
+    location              = "eastus"
+    resource_group_name   = "${azurerm_resource_group.myterraformgroup.name}"
+    network_interface_ids = ["${azurerm_network_interface.myterraformnic.id}"]
+    vm_size               = "Standard_DS1_v2"
+
+    storage_os_disk {
+        name              = "myOsDisk"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "Premium_LRS"
+    }
+
+    storage_image_reference {
+        publisher = "Canonical"
+        offer     = "UbuntuServer"
+        sku       = "16.04.0-LTS"
+        version   = "latest"
+    }
+
+    os_profile {
+        computer_name  = "myvm"
+        admin_username = "azureuser"
+        admin_password = "Trucksaregr8"
+    }
+
+    os_profile_linux_config {
+        disable_password_authentication = false
+#        ssh_keys {
+#            path     = "/home/azureuser/.ssh/authorized_keys"
+#            key_data = "ssh-rsa AAAAB3Nz{snip}hwhqT9h"
+ #       }
+    }
+
+#    boot_diagnostics {
+#        enabled = "true"
+#        storage_uri = "${azurerm_storage_account.mystorageaccount.primary_blob_endpoint}"
+#    }
+    
+    tags = {
+        environment = "Terraform Demo"
+    }
+}
+
+data "template_file" "customscripttemplate" {
+  template = "${file("${path.root}/bootstrap.json")}"
+}
+
+resource "azurerm_virtual_machine_extension" "nodeappinstall" {
+  name                 = "nodeapp_install"
+  location             = "eastus"
+  resource_group_name  = "${azurerm_resource_group.myterraformgroup.name}"
+  virtual_machine_name = "${azurerm_virtual_machine.myterraformvm.name}"
+  publisher            = "Microsoft.Azure.Extensions"
+  type                 = "CustomScript"
+  type_handler_version = "2.0"
+  settings = "${data.template_file.customscripttemplate.rendered}"
 }
