@@ -1,4 +1,4 @@
 {   
     "fileUris": [ "https://raw.githubusercontent.com/dstrimble/nodejs-terraform-example/master/mynodeapp.sh" ],
-    "commandToExecute": "bash mynodeapp.sh "
+    "commandToExecute": "bash mynodeapp.sh ${var.echostatement}"
 }

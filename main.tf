@@ -2,6 +2,12 @@
 provider "azurerm" {
 }
 
+variable "echostatement" {
+  type = string,
+  description = "echo statment",
+  default = "hello daniel"
+}
+
 # Create a resource group if it doesn’t exist
 resource "azurerm_resource_group" "myterraformgroup" {
     name     = "myResourceGroup"
