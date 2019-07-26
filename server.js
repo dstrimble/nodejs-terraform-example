@@ -3,8 +3,8 @@ const app = express();
 
 const echo = process.env.ECHO_VAR;
 
-app.get('/', function (req, res) {
-  res.send("hello " + echo);
+app.get('/echo', function (req, res) {
+  res.send(echo);
 })
 
 app.listen(80, function () {

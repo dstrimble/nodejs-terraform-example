@@ -3,8 +3,8 @@ provider "azurerm" {
 }
 
 variable "echostatement" {
-  type = string,
-  description = "echo statment",
+  type = string
+  description = "echo statment"
   default = "hello daniel"
 }
 
@@ -79,7 +79,7 @@ resource "azurerm_network_security_group" "myterraformnsg" {
         access                     = "Allow"
         protocol                   = "Tcp"
         source_port_range          = "*"
-        destination_port_range     = "3000"
+        destination_port_range     = "80"
         source_address_prefix      = "*"
         destination_address_prefix = "*"
     }
@@ -177,9 +177,9 @@ resource "azurerm_virtual_machine" "myterraformvm" {
     }
 }
 
-data "template_file" "customscripttemplate" {
-  template = "${file("${path.root}/bootstrap.json")}"
-}
+#data "template_file" "customscripttemplate" {
+#  template = "${file("${path.root}/bootstrap.json")}"
+#}
 
 resource "azurerm_virtual_machine_extension" "nodeappinstall" {
   name                 = "nodeapp_install"
@@ -189,5 +189,10 @@ resource "azurerm_virtual_machine_extension" "nodeappinstall" {
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"
-  settings = "${data.template_file.customscripttemplate.rendered}"
+  settings = <<SETTINGS
+   {
+    "fileUris": [ "https://raw.githubusercontent.com/dstrimble/nodejs-terraform-example/master/mynodeapp.sh" ],
+    "commandToExecute": "bash mynodeapp.sh '${var.echostatement}'"
+   }
+SETTINGS
 }
