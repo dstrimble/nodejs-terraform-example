@@ -4,7 +4,7 @@ const app = express();
 const echo = process.env.ECHO_VAR;
 
 app.get('/echo', function (req, res) {
-  res.send(echo);
+  res.send("echoing " + echo);
 })
 
 app.listen(80, function () {
