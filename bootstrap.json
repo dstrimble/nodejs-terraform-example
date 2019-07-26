@@ -1,3 +1,4 @@
-{
-    "script":"c3VkbyBhcHQtZ2V0IHVwZGF0ZSDigJN5CnN1ZG8gYXB0LWdldCBpbnN0YWxsIGdpdCAteQpta2RpciAvYXBwCmNobW9kIDc1NSAvYXBwCmNkIC9hcHAKZ2l0IGNsb25lIGh0dHBzOi8vZ2l0aHViLmNvbS9hbGV4dmF5bi9oZWxsby13b3JsZC1leGFtcGxlLmdpdApjdXJsIC1zTCBodHRwczovL2RlYi5ub2Rlc291cmNlLmNvbS9zZXR1cF8xMC54IHwgc3VkbyAtRSBiYXNoIC0Kc3VkbyBhcHQtZ2V0IGluc3RhbGwgbm9kZWpzIC15Cm5vZGUgLS12ZXJzaW9uCmNkIC9hcHAvaGVsbG8td29ybGQtZXhhbXBsZQpucG0gaW5zdGFsbApucG0gc3RhcnQK"
+{   
+    "fileUris": [ "https://raw.githubusercontent.com/dstrimble/nodejs-terraform-example/master/mynodeapp.sh" ],
+    "commandToExecute": "bash mynodeapp.sh "
 }

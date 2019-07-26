@@ -1,4 +1,5 @@
 #!/bin/bash
+export ECHO_VAR=$1
 sudo apt-get update –y
 sudo apt-get install git -y
 mkdir /app

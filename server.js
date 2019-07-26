@@ -1,11 +1,12 @@
 const express = require('express');
 const app = express();
-const functions = require('./basic-functions');
+
+const echo = process.env.ECHO_VAR;
 
 app.get('/', function (req, res) {
-  res.send(functions.helloName('Rohan'));
+  res.send("hello " + echo);
 })
 
-app.listen(3000, function () {
-  console.log('Example app listening on port 3000!')
+app.listen(80, function () {
+  console.log('Example app listening on port 80!')
 })
